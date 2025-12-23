@@ -2,72 +2,71 @@ import React, { useState } from "react";
 import P5Wrapper from "./P5Wrapper";
 import { starField } from "../sketches/starField";
 import { funnelSim } from "../sketches/funnelSim";
+import { galtonBoard } from "../sketches/galtonBoard";
+import { diceSim } from "../sketches/diceSim"; // Tuo uusi sketsi
 
 const Dashboard = () => {
-  const [activeSketch, setActiveSketch] = useState("starField");
-  const [lambda, setLambda] = useState(0.1); // Tippumisnopeus
-  const [capacity, setCapacity] = useState(0.1); // Vetävyys
-  const [persistent, setPersistent] = useState(false);
+  const [activeSketchStr, setActiveSketchStr] = useState("dice");
+  const [rollLimit, setRollLimit] = useState(100); // Noppien heittomäärä
+  const [interval, setInterval] = useState(1000); // Viive millisekunteina
+  const [ballLimit, setBallLimit] = useState(500);
+  const [capacity, setCapacity] = useState(0.1);
   const [resetFlag, setResetFlag] = useState(0);
 
+  const getActiveSketchObj = () => {
+    switch(activeSketchStr) {
+      case "starField": return starField;
+      case "funnel": return funnelSim;
+      case "galton": return galtonBoard;
+      case "dice": return diceSim;
+      default: return diceSim;
+    }
+  }
+
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100vw", background: "#000" }}>
-      <aside style={{ width: "280px", background: "#111", color: "white", padding: "20px", zIndex: 10 }}>
-        <h2>Poisson Lab</h2>
+    <div style={{ display: "flex", height: "100vh", width: "100vw", background: "#000", color: "white" }}>
+      <aside style={{ width: "300px", background: "#111", padding: "20px", display: "flex", flexDirection: "column", borderRight: "1px solid #333" }}>
+        <h2>Statistics Lab</h2>
         
-        <div style={{ display: "flex", gap: "5px", marginBottom: "30px" }}>
-          <button 
-            onClick={() => setActiveSketch("starField")}
-            style={{ flex: 1, padding: "8px", background: activeSketch === "starField" ? "#444" : "#222", color: "white", border: "none", cursor: "pointer" }}
-          >✨ Tähdet</button>
-          <button 
-            onClick={() => setActiveSketch("funnel")}
-            style={{ flex: 1, padding: "8px", background: activeSketch === "funnel" ? "#444" : "#222", color: "white", border: "none", cursor: "pointer" }}
-          >⏳ Suppilo</button>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "20px" }}>
+          <button onClick={() => setActiveSketchStr("starField")} style={{flex: "1 0 45%", padding: "8px", background: activeSketchStr === "starField" ? "#444" : "#222", border: "none", color: "white", cursor: "pointer"}}>✨ Tähdet</button>
+          <button onClick={() => setActiveSketchStr("funnel")} style={{flex: "1 0 45%", padding: "8px", background: activeSketchStr === "funnel" ? "#444" : "#222", border: "none", color: "white", cursor: "pointer"}}>⏳ Suppilo</button>
+          <button onClick={() => setActiveSketchStr("galton")} style={{flex: "1 0 45%", padding: "8px", background: activeSketchStr === "galton" ? "#444" : "#222", border: "none", color: "white", cursor: "pointer"}}>🎯 Galton</button>
+          <button onClick={() => setActiveSketchStr("dice")} style={{flex: "1 0 45%", padding: "8px", background: activeSketchStr === "dice" ? "#444" : "#222", border: "none", color: "white", cursor: "pointer"}}>🎲 Nopat</button>
         </div>
 
-        {/* Slider 1: Tippumisnopeus (Kaikille) */}
-        <div style={{ marginBottom: "20px" }}>
-          <label>Tippumisnopeus (λ): {lambda.toFixed(2)}</label>
-          <input
-            type="range" min="0.01" max="0.5" step="0.01"
-            value={lambda}
-            onChange={(e) => setLambda(parseFloat(e.target.value))}
-            style={{ width: "100%", marginTop: "10px" }}
-          />
-        </div>
-
-        {/* Slider 2: Vain suppilolle */}
-        {activeSketch === "funnel" && (
+        {activeSketchStr === "dice" ? (
+          <>
+            <div style={{ marginBottom: "20px" }}>
+              <label>Heittokierrokset: <b>{rollLimit}</b></label>
+              <input type="range" min="10" max="1000" step="10" value={rollLimit} onChange={(e) => setRollLimit(parseInt(e.target.value))} style={{ width: "100%" }} />
+            </div>
+            <div style={{ marginBottom: "20px" }}>
+              <label>Heittoväli: <b>{interval} ms</b></label>
+              <input type="range" min="50" max="2000" step="50" value={interval} onChange={(e) => setInterval(parseInt(e.target.value))} style={{ width: "100%" }} />
+            </div>
+          </>
+        ) : (
           <div style={{ marginBottom: "20px" }}>
-            <label>Suppilon vetävyys: {capacity.toFixed(2)}</label>
-            <input
-              type="range" min="0.01" max="0.5" step="0.01"
-              value={capacity}
-              onChange={(e) => setCapacity(parseFloat(e.target.value))}
-              style={{ width: "100%", marginTop: "10px" }}
-            />
+            <label>Pallojen/Kohteiden määrä: <b>{ballLimit}</b></label>
+            <input type="range" min="50" max="2000" step="50" value={ballLimit} onChange={(e) => setBallLimit(parseInt(e.target.value))} style={{ width: "100%" }} />
           </div>
         )}
 
-        {/* Tähdet-asetus */}
-        {activeSketch === "starField" && (
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <input type="checkbox" checked={persistent} onChange={(e) => setPersistent(e.target.checked)} />
-            <label>Jätä tähdet palamaan</label>
-          </div>
-        )}
+        <button onClick={() => setResetFlag(prev => prev + 1)} style={{ marginTop: "auto", padding: "12px", background: "#d32f2f", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+          🔄 Nollaa simulaatio
+        </button>
       </aside>
 
-      <main style={{ flexGrow: 1, position: "relative" }}>
-// Dashboard.jsx sisällä
-<P5Wrapper 
-  sketch={activeSketch === "starField" ? starField : funnelSim} 
-  lambda={lambda} 
-  capacity={capacity}
-  persistent={persistent} 
-  resetFlag={resetFlag} // Tämä nollaa nyt myös pallot
-/>
+      <main style={{ flexGrow: 1 }}>
+        <P5Wrapper 
+          sketch={getActiveSketchObj()} 
+          rollLimit={rollLimit}
+          interval={interval}
+          ballLimit={ballLimit}
+          capacity={capacity}
+          resetFlag={resetFlag}
+        />
       </main>
     </div>
   );

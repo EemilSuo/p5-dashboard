@@ -1,31 +1,48 @@
 import React, { useRef, useEffect } from "react";
 import p5 from "p5";
 
-const P5Wrapper = ({ sketch, lambda, capacity, persistent, resetFlag }) => {
+const P5Wrapper = ({
+  sketch,
+  lambda,
+  ballLimit,
+  rollLimit,
+  interval,
+  capacity,
+  persistent,
+  resetFlag,
+}) => {
   const wrapperRef = useRef();
   const canvasRef = useRef();
 
+  // Luodaan sketsi-instanssi vain kerran tai kun sketsi vaihtuu
   useEffect(() => {
-    // Luodaan instanssi
     const p5Instance = new p5(sketch, wrapperRef.current);
     canvasRef.current = p5Instance;
-
-    // Alustetaan arvot heti
-    if (p5Instance.updateProps) {
-      p5Instance.updateProps({ lambda, capacity, persistent, resetFlag });
-    }
 
     return () => p5Instance.remove();
   }, [sketch]);
 
-  // PÄIVITYS: Lisätty capacity tarkkailtavien listaan
+  // PÄIVITYS: Tämä useEffect huolehtii, että KAIKKI arvot menevät perille asti
   useEffect(() => {
     if (canvasRef.current && canvasRef.current.updateProps) {
-      canvasRef.current.updateProps({ lambda, capacity, persistent, resetFlag });
+      canvasRef.current.updateProps({
+        lambda,
+        ballLimit,
+        rollLimit,
+        interval,
+        capacity,
+        persistent,
+        resetFlag,
+      });
     }
-  }, [lambda, capacity, persistent, resetFlag]); // Reagoi kapasiteetin muutokseen
+  }, [lambda, ballLimit, rollLimit, interval, capacity, persistent, resetFlag]);
 
-  return <div ref={wrapperRef} style={{ width: "100%", height: "100%", overflow: "hidden" }} />;
+  return (
+    <div
+      ref={wrapperRef}
+      style={{ width: "100%", height: "100%", overflow: "hidden" }}
+    />
+  );
 };
 
 export default P5Wrapper;
