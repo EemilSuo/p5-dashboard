@@ -2,6 +2,8 @@
 
 Visualizing different statistical equations
 
+Test it here: https://eemilsuo.github.io/p5-dashboard/
+
 npm run to run the program.
 
 
